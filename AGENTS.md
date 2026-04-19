@@ -1,7 +1,18 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is a personal Neovim configuration written primarily in Lua. `init.lua` is the main entrypoint: it sets core options, bootstraps `lazy.nvim`, registers plugins, and wires theme logic. Reusable modules live under `lua/`, with current splits for editor behavior such as [`lua/lsp.lua`](/home/yaroslav/.config/nvim/lua/lsp.lua:1) and [`lua/keymap.lua`](/home/yaroslav/.config/nvim/lua/keymap.lua:1). LSP-specific definitions live under `lsp/` as return-value tables, for example `lsp/lua_ls.lua`. Static palette data is kept in `matugen_colors.lua`. `lazy-lock.json` pins plugin versions and should be updated intentionally.
+This repository is a personal Neovim configuration written in Lua. `init.lua` is intentionally thin and only wires core modules from `lua/config/`:
+
+- `lua/config/options.lua` — editor options and leader keys
+- `lua/config/lazy.lua` — `lazy.nvim` bootstrap and plugin import
+- `lua/config/lsp.lua` — diagnostics + LSP startup (`basedpyright`, `lua_ls`, `nil_ls`)
+- `lua/config/keymaps.lua` — global keymaps
+- `lua/config/autocmds.lua` — autocommands
+- `lua/config/theme.lua` — colorscheme and lualine orchestration
+
+Plugins are split by domain under `lua/plugins/` (`coding.lua`, `ui.lua`, `notebooks.lua`, `codex.lua`, `markdown.lua`) and loaded through `{ import = "plugins" }`. `lazy-lock.json` pins plugin versions and should be changed intentionally.
+
+Compatibility shims `lua/lsp.lua` and `lua/keymap.lua` currently re-export `config.*`; prefer editing `lua/config/*` directly. Static palette data is in `matugen_colors.lua`.
 
 ## Build, Test, and Development Commands
 Use Neovim itself as the runtime and test harness.
@@ -10,6 +21,7 @@ Use Neovim itself as the runtime and test harness.
 - `nvim --headless "+Lazy! sync" +qa`: install or update plugins from `init.lua`.
 - `nvim --headless "+checkhealth" +qa`: run built-in diagnostics for providers, LSPs, and plugin prerequisites.
 - `nvim --headless "+lua vim.print(vim.fn.has('nvim-0.10'))" +qa`: quick sanity check against expected Neovim features.
+- `luac -p lua/config/*.lua lua/plugins/*.lua`: syntax check for changed Lua modules.
 
 If `stylua` is installed locally, run `stylua init.lua lua/**/*.lua lsp/**/*.lua` before submitting changes.
 
@@ -20,4 +32,4 @@ Use Lua with 2-space indentation only where the surrounding file already uses it
 There is no dedicated automated test suite in this repo. Validate changes with headless startup checks and one interactive smoke test in `nvim`. For keymaps, verify both the mapping and the underlying command. For LSP changes, open a matching filetype and confirm attach behavior, diagnostics, and completion.
 
 ## Commit & Pull Request Guidelines
-Local Git history is not available in this directory, so no repository-specific commit convention could be inferred. Use short imperative commit messages such as `Add Codex LSP defaults` or `Refactor theme reload logic`. Pull requests should include a concise summary, any changed commands or prerequisites, and screenshots or terminal captures for visible UI changes such as colorscheme, statusline, tree, or floating window behavior.
+Git history is available in this directory. Use short imperative commit messages such as `Add markdown renderer` or `Align Python LSP with basedpyright`. Pull requests should include a concise summary, changed commands/prerequisites, and screenshots or terminal captures for visible UI changes (colorscheme, statusline, tree, floating windows, markdown rendering).
