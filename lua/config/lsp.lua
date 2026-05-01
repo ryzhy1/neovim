@@ -10,56 +10,88 @@ vim.diagnostic.config({
   },
 })
 
-vim.lsp.config("basedpyright", {
+vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code actions" })
+vim.keymap.set("n", "<leader>ci", function()
+  vim.lsp.buf.code_action({
+    apply = true,
+    context = {
+      only = {
+        "source.addMissingImports",
+        "source.addMissingImports.pyright",
+      },
+    },
+  })
+end, { desc = "Add missing imports" })
+
+vim.api.nvim_create_user_command("LspAddMissingImports", function()
+  vim.lsp.buf.code_action({
+    apply = true,
+    context = {
+      only = {
+        "source.addMissingImports",
+        "source.addMissingImports.pyright",
+      },
+    },
+  })
+end, { desc = "Add missing imports using LSP" })
+
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+local ok_blink, blink = pcall(require, "blink.cmp")
+if ok_blink then
+  capabilities = blink.get_lsp_capabilities(capabilities)
+end
+
+local function project_root(bufnr, markers)
+  local filename = vim.api.nvim_buf_get_name(bufnr)
+  local root = vim.fs.root(filename, markers)
+  return root or vim.uv.cwd() or vim.fs.dirname(filename)
+end
+
+local function python_path(root_dir)
+  local venv_python = root_dir .. "/.venv/bin/python"
+  if vim.uv.fs_stat(venv_python) then
+    return venv_python
+  end
+
+  return vim.fn.exepath("python3") or vim.fn.exepath("python") or "python"
+end
+
+vim.lsp.config("pyright", {
+  capabilities = capabilities,
+  root_dir = function(bufnr, on_dir)
+    on_dir(project_root(bufnr, {
+      "pyrightconfig.json",
+      "pyproject.toml",
+      "setup.py",
+      "setup.cfg",
+      "requirements.txt",
+      "Pipfile",
+      ".git",
+    }))
+  end,
+  before_init = function(_, config)
+    config.settings = config.settings or {}
+    config.settings.python = config.settings.python or {}
+    config.settings.python.pythonPath = python_path(config.root_dir)
+  end,
   settings = {
-    basedpyright = {
+    python = {
       analysis = {
+        autoImportCompletions = true,
         autoSearchPaths = true,
+        extraPaths = { "src" },
         useLibraryCodeForTypes = true,
       },
     },
   },
 })
 
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-local ok_cmp_lsp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-if ok_cmp_lsp then
-  capabilities = cmp_nvim_lsp.default_capabilities()
-end
+vim.lsp.config("nil_ls", {
+  capabilities = capabilities,
+})
 
-local function setup_server(server_name, config)
-  local ok, server_config = pcall(require, "lspconfig.server_configurations." .. server_name)
-  if not ok then
-    return
-  end
-
-  local default_config = server_config.default_config
-  local final_config = vim.tbl_deep_extend("force", default_config, config or {})
-  final_config.capabilities = vim.tbl_deep_extend(
-    "force",
-    final_config.capabilities or {},
-    capabilities
-  )
-
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = final_config.filetypes,
-    callback = function(args)
-      local instance_config = vim.tbl_deep_extend("force", {}, final_config)
-      local root_dir = final_config.root_dir
-
-      if type(root_dir) == "function" then
-        root_dir = root_dir(args.file)
-      end
-
-      instance_config.root_dir = root_dir or vim.fs.dirname(args.file)
-      vim.lsp.start(instance_config)
-    end,
-  })
-end
-
-setup_server("basedpyright", {})
-setup_server("nil_ls", {})
-setup_server("lua_ls", {
+vim.lsp.config("lua_ls", {
+  capabilities = capabilities,
   settings = {
     Lua = {
       runtime = { version = "LuaJIT" },
@@ -68,4 +100,10 @@ setup_server("lua_ls", {
       telemetry = { enable = false },
     },
   },
+})
+
+vim.lsp.enable({
+  "pyright",
+  "nil_ls",
+  "lua_ls",
 })

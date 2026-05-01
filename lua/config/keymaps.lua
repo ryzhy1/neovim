@@ -28,8 +28,6 @@ vim.keymap.set("n", "gr", vim.lsp.buf.references, {
   desc = "Go to references",
 })
 
-vim.keymap.set("n", "<leader>c", ":bd<CR>", { desc = "Close tab" })
-
 vim.keymap.set("n", "<leader>mi", ":MoltenInit<CR>", { silent = true, desc = "Molten init" })
 vim.keymap.set(
   "n",
@@ -65,7 +63,11 @@ local term_win = nil
 
 vim.keymap.set("n", "<leader>tt", function()
   if term_win and vim.api.nvim_win_is_valid(term_win) then
-    vim.api.nvim_win_close(term_win, true)
+    if #vim.api.nvim_list_wins() > 1 then
+      vim.api.nvim_win_close(term_win, true)
+    else
+      vim.cmd("quit")
+    end
     term_win = nil
     return
   end

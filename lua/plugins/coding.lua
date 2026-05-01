@@ -3,14 +3,21 @@ return {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      local ok, ts = pcall(require, "nvim-treesitter.configs")
+      local ok, ts = pcall(require, "nvim-treesitter")
       if not ok then
         return
       end
 
-      ts.setup({
-        highlight = { enable = true },
-        indent = { enable = true },
+      local languages = { "python", "lua", "nix", "go", "gomod" }
+
+      ts.setup()
+      ts.install(languages)
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = languages,
+        callback = function()
+          pcall(vim.treesitter.start)
+        end,
       })
     end,
   },
@@ -18,6 +25,10 @@ return {
     "saghen/blink.cmp",
     version = "1.*",
     build = "cargo build --release",
+    dependencies = {
+      "L3MON4D3/LuaSnip",
+      "rafamadriz/friendly-snippets",
+    },
     config = function()
       local ok, blink = pcall(require, "blink.cmp")
       if not ok then
@@ -29,12 +40,12 @@ return {
         signature = { enabled = true },
         keymap = {
           preset = "default",
-          ["<C-space>"] = {},
+          ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
           ["<C-p>"] = {},
-          ["<Tab>"] = {},
-          ["<S-Tab>"] = {},
-          ["<C-y>"] = { "show", "show_documentation", "hide_documentation" },
-          ["<C-n>"] = { "select_and_accept" },
+          ["<Tab>"] = { "select_and_accept", "fallback" },
+          ["<S-Tab>"] = { "select_prev", "fallback" },
+          ["<C-y>"] = { "select_and_accept" },
+          ["<C-n>"] = { "select_next", "fallback" },
           ["<C-k>"] = { "select_prev", "fallback" },
           ["<C-j>"] = { "select_next", "fallback" },
           ["<C-b>"] = { "scroll_documentation_down", "fallback" },
@@ -47,6 +58,10 @@ return {
           nerd_font_variant = "normal",
         },
         completion = {
+          menu = {
+            auto_show = true,
+            auto_show_delay_ms = 100,
+          },
           documentation = {
             auto_show = true,
             auto_show_delay_ms = 200,
@@ -59,8 +74,9 @@ return {
           },
         },
         sources = {
-          default = { "lsp" },
+          default = { "lsp", "path", "snippets", "buffer" },
         },
+        snippets = { preset = "luasnip" },
       })
     end,
   },
@@ -201,9 +217,6 @@ return {
       })
     end,
   },
-  "hrsh7th/cmp-nvim-lsp",
-  "hrsh7th/cmp-buffer",
-  "hrsh7th/cmp-path",
   {
     "L3MON4D3/LuaSnip",
     config = function()
@@ -212,59 +225,6 @@ return {
       end)
     end,
   },
-  "saadparwaiz1/cmp_luasnip",
   "rafamadriz/friendly-snippets",
   "neovim/nvim-lspconfig",
-  {
-    "hrsh7th/nvim-cmp",
-    dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
-      "hrsh7th/cmp-buffer",
-      "hrsh7th/cmp-path",
-      "L3MON4D3/LuaSnip",
-      "saadparwaiz1/cmp_luasnip",
-      "rafamadriz/friendly-snippets",
-    },
-    config = function()
-      local ok_cmp, cmp = pcall(require, "cmp")
-      local ok_luasnip, luasnip = pcall(require, "luasnip")
-      if not (ok_cmp and ok_luasnip) then
-        return
-      end
-
-      cmp.setup({
-        snippet = {
-          expand = function(args)
-            luasnip.lsp_expand(args.body)
-          end,
-        },
-        mapping = cmp.mapping.preset.insert({
-          ["<C-n>"] = cmp.mapping.select_next_item(),
-          ["<C-p>"] = cmp.mapping.select_prev_item(),
-          ["<C-d>"] = cmp.mapping.scroll_docs(-4),
-          ["<C-f>"] = cmp.mapping.scroll_docs(4),
-          ["<C-Space>"] = cmp.mapping.complete(),
-          ["<CR>"] = cmp.mapping.confirm({
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true,
-          }),
-          ["<Tab>"] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-              cmp.select_next_item()
-            elseif luasnip.expand_or_jumpable() then
-              luasnip.expand_or_jump()
-            else
-              fallback()
-            end
-          end, { "i", "s" }),
-        }),
-        sources = {
-          { name = "nvim_lsp" },
-          { name = "luasnip" },
-          { name = "buffer" },
-          { name = "path" },
-        },
-      })
-    end,
-  },
 }
