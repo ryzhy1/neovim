@@ -1,5 +1,7 @@
 require("config.options")
 require("config.lazy").setup()
+require("config.claude").setup()
+require("config.gemini").setup()
 require("config.lsp")
 require("config.keymaps")
 require("config.autocmds")

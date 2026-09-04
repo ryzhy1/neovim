@@ -1,0 +1,2 @@
+WRN 2026-05-05T18:55:55.687 c/nvim.14269.0 server_start:197: Failed to start server: operation not permitted: /var/folders/9r/38mj3t2d3sjf6xsht3qjny0m0000gn/T/nvim.yaroslav/FGRSxz/nvim.14524.0
+WRN 2026-05-05T18:55:55.793 c/nvim.14269.0 server_start:197: Failed to start server: operation not permitted: /var/folders/9r/38mj3t2d3sjf6xsht3qjny0m0000gn/T/nvim.yaroslav/FGRSxz/fzf-lua.1777996555.14524.1

@@ -10,6 +10,22 @@ end, { desc = "Live grep" })
 
 vim.keymap.set("t", "<C-q>", [[<C-\><C-n>]])
 
+vim.keymap.set("n", "<leader>ca", function()
+  require("config.claude").toggle()
+end, { desc = "Toggle Claude popup" })
+
+vim.keymap.set("t", "<leader>ca", function()
+  require("config.claude").toggle()
+end, { desc = "Toggle Claude popup" })
+
+vim.keymap.set("n", "<leader>cg", function()
+  require("config.gemini").toggle()
+end, { desc = "Toggle Gemini popup" })
+
+vim.keymap.set("t", "<leader>cg", function()
+  require("config.gemini").toggle()
+end, { desc = "Toggle Gemini popup" })
+
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, {
   noremap = true,
   silent = true,
@@ -117,4 +133,24 @@ vim.keymap.set("n", "<S-Tab>", ":BufferLineCyclePrev<CR>", { silent = true })
 vim.keymap.set("n", "<leader>x", ":bdelete<CR>", {
   silent = true,
   desc = "Close buffer",
+})
+
+vim.keymap.set("n", "<leader>>", "<Cmd>vertical resize +5<CR>", {
+  silent = true,
+  desc = "Increase window width",
+})
+
+vim.keymap.set("n", "<leader><", "<Cmd>vertical resize -5<CR>", {
+  silent = true,
+  desc = "Decrease window width",
+})
+
+vim.keymap.set("n", "<leader>+", "<Cmd>resize +3<CR>", {
+  silent = true,
+  desc = "Increase window height",
+})
+
+vim.keymap.set("n", "<leader>-", "<Cmd>resize -3<CR>", {
+  silent = true,
+  desc = "Decrease window height",
 })
